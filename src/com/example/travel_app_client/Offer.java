@@ -13,9 +13,11 @@ public class Offer implements Serializable {
     private String hotelName;
     private Date startDate;
     private Date endDate;
+    private String imageUrl;
+    private String insurance;
 
 
-    public Offer(int id, String country, String city, double price, String hotelName, Date startDate, Date endDate) {
+    public Offer(int id, String country, String city, double price, String hotelName, Date startDate, Date endDate, String imageUrl, String insurance) {
         this.id = id;
         this.country = country;
         this.city = city;
@@ -23,6 +25,8 @@ public class Offer implements Serializable {
         this.hotelName = hotelName;
         this.startDate = startDate;
         this.endDate = endDate;
+        this.insurance = insurance;
+        this.imageUrl = imageUrl;
     }
 
     public int getId() {
@@ -52,18 +56,12 @@ public class Offer implements Serializable {
     public Date getEndDate() {
         return endDate;
     }
-
-
-    @Override
-    public String toString() {
-        return "Offer{" +
-                "id=" + id +
-                ", country='" + country + '\'' +
-                ", city='" + city + '\'' +
-                ", price=" + price +
-                ", hotelName='" + hotelName + '\'' +
-                ", startDate=" + startDate +
-                ", endDate=" + endDate +
-                '}';
+    public String getImageUrl() {
+        return imageUrl;
     }
+    public String getInsurance() {
+        return insurance;
+    }
+
+
 }

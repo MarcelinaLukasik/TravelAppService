@@ -24,7 +24,7 @@ public class SocketServer {
     private static String dbUser = "C##myuser";
     private static String dbPassword = "mypassword";
 
-    public static void main(String args[]) throws IOException, ClassNotFoundException, SQLException {
+    public static void main(String args[]) throws IOException, ClassNotFoundException {
 
         serverSocket = new ServerSocket(port);
 
@@ -34,26 +34,41 @@ public class SocketServer {
 
             Socket socket = serverSocket.accept();
 
-            // Create ObjectInputStream to read messages
             ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
 
             String message = (String) ois.readObject();
             System.out.println("Message Received: " + message);
 
-            //Connect to the database and perform a SELECT * query
-            List<Offer> offers = connectToDatabaseAndQuery();
 
-            // Create ObjectOutputStream object to send the response to the client
-            ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
 
-            // Send the list of offers back to the client
-            oos.writeObject(offers);
-            oos.flush();
+            if (message.equalsIgnoreCase("fetchOffers")) {
 
-            // Close resources
-            ois.close();
-            oos.close();
-            socket.close();
+                List<Offer> offers = connectToDatabaseAndQuery();
+
+                ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
+
+                oos.writeObject(offers);
+                oos.flush();
+
+                ois.close();
+                oos.close();
+                socket.close();
+            }
+            else if (message.equalsIgnoreCase("bookOffer")) {
+
+                int offerId = ois.readInt();
+                String username = ois.readUTF();
+
+                updateReservationInDatabase(offerId, username);
+
+
+//                ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
+//                oos.writeObject("Offer updated successfully");
+                //oos.flush();
+                ois.close();
+                //oos.close();
+                socket.close();
+            }
 
             if(message.equalsIgnoreCase("exit")) break;
         }
@@ -97,7 +112,9 @@ public class SocketServer {
                         rs.getDouble("PRICE"),
                         rs.getString("HOTEL_NAME"),
                         startDate,
-                        endDate
+                        endDate,
+                        rs.getString("IMAGEURL"),
+                        rs.getString("INSURANCE")
                 );
                 offers.add(offer);
             }
@@ -119,5 +136,38 @@ public class SocketServer {
         }
 
         return offers;
+    }
+
+    private static void updateReservationInDatabase(int offerId, String username)
+    {
+
+        Connection conn = null;
+        try {
+
+            conn = DriverManager.getConnection(jdbcURL, dbUser, dbPassword);
+
+
+            Statement stmt = conn.createStatement();
+
+
+            int isPaid = 0;
+
+            String query = "INSERT INTO reservations (offerid, username, ispaid) " +
+                    "VALUES (" + offerId + ", '" + username + "', " + isPaid + ")";
+
+            stmt.executeUpdate(query);
+
+            stmt.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
     }
 }
